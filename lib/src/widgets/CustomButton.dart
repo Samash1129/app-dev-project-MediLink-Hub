@@ -8,6 +8,7 @@ class CustomButton extends StatelessWidget {
   final TextStyle? textStyle;
   final String? imageAssetPath;
   final double width;
+  final double radius;
 
   const CustomButton({
     Key? key,
@@ -17,6 +18,7 @@ class CustomButton extends StatelessWidget {
     this.textStyle,
     this.imageAssetPath,
     required this.width,
+    required this.radius,
   }) : super(key: key);
 
   @override
@@ -27,7 +29,7 @@ class CustomButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(radius),
           ),
         ),
         onPressed: onPressed,

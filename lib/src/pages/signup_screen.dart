@@ -2,14 +2,14 @@ import 'package:app_dev_project_medilink_app/src/widgets/CustomButton.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignUpPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +24,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const SizedBox(height: 20),
                   const Text(
-                    "Sign In",
+                    "Sign Up",
                     style: TextStyle(
                       fontSize: 35,
                     ),
@@ -32,11 +32,40 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 20),
                   const TextField(
                     decoration: InputDecoration(
-                      labelText: 'Username or Email',
+                      labelText: 'Username',
                       prefixIcon: Padding(
                         padding: EdgeInsets.fromLTRB(0, 8, 20, 8),
                         child: Icon(
                           Icons.person_outline,
+                          size: 30,
+                        ),
+                      ),
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  const TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Padding(
+                        padding: EdgeInsets.fromLTRB(0, 8, 20, 8),
+                        child: Icon(
+                          Icons.email_outlined,
+                          size: 30,
+                        ),
+                      ),
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  const TextField(
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: Padding(
+                        padding: EdgeInsets.fromLTRB(0, 8, 20, 8),
+                        child: Icon(
+                          Icons.lock_outlined,
                           size: 30,
                         ),
                       ),
@@ -64,19 +93,12 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              color: Colors.redAccent[700],
-                              fontSize: 12,
-                            ),
-                          ),
                           Row(
                             children: [
                               const SizedBox(
                                 height: 35,
                                 child: Text(
-                                  'New to MediLink?',
+                                  'Already have an Account?',
                                   style: TextStyle(
                                     fontSize: 12,
                                   ),
@@ -84,14 +106,14 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               InkWell(
                                 onTap: () {
-                                  Navigator.pushNamed(context, '/signup');
+                                  Navigator.pushNamed(context, '/login');
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
                                   child: SizedBox(
                                     height: 34,
                                     child: Text(
-                                      'Sign Up',
+                                      'Sign In',
                                       style: TextStyle(
                                         color: Colors.redAccent[700],
                                         fontSize: 12,
@@ -106,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                       )),
                   CustomButton(
                     width: MediaQuery.of(context).size.width * 0.8,
-                    text: "Sign In",
+                    text: "Sign Up",
                     textStyle: const TextStyle(
                       fontSize: 18,
                       color: Colors.white,
@@ -118,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                     color: Colors.redAccent[700]!.withOpacity(1.0),
                   ),
                   const SizedBox(height: 12),
-                  const Text('Or Sign In with', style: TextStyle(fontSize: 12)),
+                  const Text('Or Sign Up with', style: TextStyle(fontSize: 12)),
                   const SizedBox(height: 12),
                   CustomButton(
                     width: MediaQuery.of(context).size.width * 0.8,
