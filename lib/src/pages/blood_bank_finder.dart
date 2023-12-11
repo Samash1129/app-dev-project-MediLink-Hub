@@ -3,16 +3,29 @@ import 'package:app_dev_project_medilink_app/src/widgets/Cards.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/CustomButton.dart';
 import 'package:flutter/material.dart';
 
-class DetailsPage extends StatelessWidget {
-  const DetailsPage({super.key});
+class BloodBankFinder extends StatelessWidget {
+  const BloodBankFinder({super.key});
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: const PreferredSize(
-          preferredSize: Size.fromHeight(50),
-          child: Appbar(appbarHeading: 'Details'),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(50),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child:
+                        const Icon(Icons.arrow_back, color: Color(0xFFAF1212))),
+              ),
+              const Appbar(appbarHeading: 'Blood Bank Finder'),
+            ],
+          ),
         ),
         body: SizedBox(
           height: MediaQuery.of(context).size.height * 0.9,
@@ -66,6 +79,7 @@ class DetailsPage extends StatelessWidget {
             ),
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.78,
+              width: MediaQuery.of(context).size.width * 0.93,
               child: const SingleChildScrollView(
                   child: Column(
                 children: [

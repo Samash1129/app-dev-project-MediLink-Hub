@@ -22,7 +22,6 @@ class CustomCard extends StatelessWidget {
       child: Card(
         color: const Color.fromARGB(100, 211, 211, 211),
         elevation: elevation, // Add elevation for a shadow effect
-        margin: const EdgeInsets.all(16.0), // Set margin for spacing
         child: Padding(
           padding:
               const EdgeInsets.all(16.0), // Set padding for content spacing
