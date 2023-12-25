@@ -1,7 +1,6 @@
 import 'package:app_dev_project_medilink_app/src/widgets/Appbar.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/Cards.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
