@@ -21,30 +21,22 @@ class FirstAidScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        // appBar: AppBar(
-        //   backgroundColor: Colors.white,
-        //   leading: IconButton(
-        //     icon: const Icon(Icons.menu, color: Color(0xFFAF1212)),
-        //     onPressed: () {
-        //       // Add your menu icon functionality here
-        //     },
-        //   ),
-        //   actions: [
-        //     IconButton(
-        //       icon: const Icon(Icons.account_circle, color: Color(0xFFAF1212)),
-        //       onPressed: () {
-        //         // Add your profile icon functionality here
-        //       },
-        //     ),
-        //   ],
-        //   title: const Text(
-        //     'First Aid Videos',
-        //     style: TextStyle(color: Color(0xFFAF1212)),
-        //   ),
-        // ),
-        appBar: const PreferredSize(
-          preferredSize: Size.fromHeight(50),
-          child: Appbar(appbarHeading: 'Details'),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(50),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child:
+                        const Icon(Icons.arrow_back, color: Color(0xFFAF1212))),
+              ),
+              const Appbar(appbarHeading: 'First Aid'),
+            ],
+          ),
         ),
         body: SingleChildScrollView(
           child: Padding(

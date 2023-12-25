@@ -5,6 +5,7 @@ class CustomCard extends StatelessWidget {
   final String title;
   final double? height;
   final String? description;
+  final String? image;
 
   const CustomCard({
     Key? key,
@@ -12,6 +13,7 @@ class CustomCard extends StatelessWidget {
     required this.title,
     this.height,
     this.description,
+    this.image,
   }) : super(key: key);
 
   @override
@@ -21,11 +23,9 @@ class CustomCard extends StatelessWidget {
       width: MediaQuery.of(context).size.width,
       child: Card(
         color: const Color.fromARGB(100, 211, 211, 211),
-        elevation: elevation, // Add elevation for a shadow effect
-        margin: const EdgeInsets.all(16.0), // Set margin for spacing
+        elevation: elevation,
         child: Padding(
-          padding:
-              const EdgeInsets.all(16.0), // Set padding for content spacing
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -36,8 +36,25 @@ class CustomCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8.0), // Add space between title and description
-              Text(description ?? '')
+              if (image != null) ...[
+                const SizedBox(height: 8.0),
+                Container(
+                  height: 146, // Adjust the height as needed
+                  width: double.infinity, // Take the full width
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(image!),
+                      fit:
+                          BoxFit.fill, // Use BoxFit.cover to fill the container
+                    ),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ],
+              if (description != null) ...[
+                const SizedBox(height: 8.0),
+                Text(description!),
+              ],
             ],
           ),
         ),

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "594676834672",
+    "project_id": "medilink-f3d12",
+    "storage_bucket": "medilink-f3d12.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:594676834672:android:c515fac074b2aa2e7dafb5",
+        "android_client_info": {
+          "package_name": "com.example.app_dev_project_medilink_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlpVMh1u066NdzPGhbbcliy6hSZvZ8yO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
