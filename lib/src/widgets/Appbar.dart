@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:app_dev_project_medilink_app/functions/authentication.dart'; // Import your authentication service
 
 class Appbar extends StatelessWidget {
   final String appbarHeading;
@@ -72,14 +71,13 @@ class Appbar extends StatelessWidget {
     ).then((String? value) {
       if (value == 'my_profile') {
         // Handle "My Profile" action
-        // You can navigate to the profile screen or perform any other action.
         print('Navigate to My Profile');
       } else if (value == 'logout') {
-        // Handle "Logout" action
-        // Call your logout function from the AuthService
-        AuthService().logout();
-        // Navigate to the login or home page
-        Navigator.pushReplacementNamed(context, '/login');
+        // Call the logout function from the AuthService
+        // ref.read(authService).logout().then((_) {
+        //   // Navigate to the login or home page after logout
+        //   Navigator.pushReplacementNamed(context, '/login');
+        // });
       }
     });
   }
