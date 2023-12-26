@@ -30,7 +30,7 @@ class LoginPage extends ConsumerWidget {
             email: emailController.text.trim(),
             password: passwordController.text,
           );
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.popAndPushNamed(context, '/home');
         } catch (error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(error.toString())),
@@ -56,7 +56,7 @@ class LoginPage extends ConsumerWidget {
         final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
         await _firebaseAuth.signInWithCredential(credential);
         print('User signed in with Google successfully!');
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.popAndPushNamed(context, '/home');
       } catch (error) {
         print('Error signing in with Google: $error');
         ScaffoldMessenger.of(context).showSnackBar(

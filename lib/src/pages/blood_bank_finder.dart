@@ -18,7 +18,7 @@ final filteredBloodBanksProvider =
   final bloodBanks = ref.watch(bloodBankProvider);
   final searchText = ref.watch(searchControllerProvider).text;
 
-  print('bloodBanks');
+  // print('bloodBanks');
 
   return bloodBanks.when(
     data: (data) {
@@ -136,7 +136,6 @@ class BloodBankFinder extends ConsumerWidget {
                     title: bloodBank['name'],
                     height: 150,
                     description:
-                        // 'Contact Info: ${bloodBank['contactNumber']}\nAddress: ${bloodBank['address']}',
                         'Contact Info: ${bloodBank['contactNumber']}\nAddress: ${bloodBank['address']}\nBlood Types: ${bloodBank['bloodTypes'].join(', ')}',
                   );
                 },
