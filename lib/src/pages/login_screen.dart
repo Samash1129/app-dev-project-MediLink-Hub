@@ -1,57 +1,79 @@
-import 'package:app_dev_project_medilink_app/functions/googleSignIn.dart';
-import 'package:app_dev_project_medilink_app/src/widgets/CustomButton.dart';
+// ignore_for_file: use_build_context_synchronously
 import 'package:app_dev_project_medilink_app/functions/authentication.dart';
+import 'package:app_dev_project_medilink_app/src/widgets/CustomButton.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LoginPage extends StatefulWidget {
+final emailControllerProvider = Provider((ref) => TextEditingController());
+final passwordControllerProvider = Provider((ref) => TextEditingController());
+final formKeyProvider = Provider((ref) => GlobalKey<FormState>());
+final authServiceProvider = Provider((ref) => AuthService(ref));
+
+class LoginPage extends ConsumerWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
-  _LoginPageState createState() => _LoginPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final emailController = ref.watch(emailControllerProvider);
+    final passwordController = ref.watch(passwordControllerProvider);
+    final formKey = ref.watch(formKeyProvider);
+    final authService = ref.read(authServiceProvider);
 
-class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final AuthService _authService = AuthService();
+    Future<void> _signIn() async {
+      final form = formKey.currentState!;
+      if (form.validate()) {
+        try {
+          await authService.login(
+            email: emailController.text.trim(),
+            password: passwordController.text,
+          );
+          Navigator.popAndPushNamed(context, '/home');
+        } catch (error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.toString())),
+          );
+        }
+      }
+    }
 
-  Future<void> _signIn() async {
-    final form = _formKey.currentState;
-    if (form != null && form.validate()) {
-      final String? errorMessage = await _authService.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+    Future<void> _signInWithGoogle() async {
+      try {
+        final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-      if (errorMessage == null) {
-        // Login success
-        print('User logged in successfully!');
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        // Login failed
-        print('Failed to log in: $errorMessage');
-        // Show a SnackBar with the error message
+        final GoogleSignInAccount? googleSignInAccount =
+            await _googleSignIn.signIn();
+        final GoogleSignInAuthentication googleSignInAuthentication =
+            await googleSignInAccount!.authentication;
+
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleSignInAuthentication.accessToken,
+          idToken: googleSignInAuthentication.idToken,
+        );
+
+        final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+        await _firebaseAuth.signInWithCredential(credential);
+        print('User signed in with Google successfully!');
+        Navigator.popAndPushNamed(context, '/home');
+      } catch (error) {
+        print('Error signing in with Google: $error');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
+          const SnackBar(
+            content: Text('Failed to sign in with Google. Please try again.'),
           ),
         );
       }
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: CupertinoPageScaffold(
           child: SafeArea(
             child: Center(
               child: Form(
-                key: _formKey,
+                key: formKey,
                 child: SizedBox(
                   height: MediaQuery.of(context).size.height * 0.8,
                   width: MediaQuery.of(context).size.width * 0.8,
@@ -67,8 +89,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
+                        controller: emailController,
+                        decoration: const InputDecoration(
                           labelText: 'Username or Email',
                           prefixIcon: Padding(
                             padding: EdgeInsets.fromLTRB(0, 8, 20, 8),
@@ -88,9 +110,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 5),
                       TextFormField(
-                        controller: _passwordController,
+                        controller: passwordController,
                         obscureText: true,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Password',
                           prefixIcon: Padding(
                             padding: EdgeInsets.fromLTRB(0, 8, 20, 8),
@@ -179,37 +201,9 @@ class _LoginPageState extends State<LoginPage> {
                           color: Colors.black,
                         ),
                         radius: 30,
-                        onPressed: () async {
-                          try {
-                            // Call the signInWithGoogle function
-                            UserCredential userCredential =
-                                await GoogleSingIn().signInWithGoogle();
-
-                            // Access user information if needed
-                            User user = userCredential.user!;
-                            print('Signed in with Google: ${user.displayName}');
-                            Navigator.popAndPushNamed(context, '/home');
-                          } catch (e) {
-                            print('Error signing in with Google: $e');
-                          }
-                        },
+                        onPressed: _signInWithGoogle,
                         color: Colors.white60,
                         imageAssetPath: 'assets/google.png',
-                      ),
-                      const SizedBox(height: 5),
-                      CustomButton(
-                        width: MediaQuery.of(context).size.width * 0.8,
-                        text: 'Facebook',
-                        textStyle: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                        radius: 30,
-                        onPressed: () {
-                          print("object");
-                        },
-                        color: Colors.blue,
-                        imageAssetPath: 'assets/facebook1.png',
                       ),
                     ],
                   ),

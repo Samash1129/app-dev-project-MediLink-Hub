@@ -1,140 +1,49 @@
-// ignore_for_file: use_build_context_synchronously
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/Appbar.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/Cards.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/CustomButton.dart';
+import '/functions/blood_bank_provider.dart';
 
-class BloodBankFinder extends StatefulWidget {
+final searchControllerProvider = Provider<TextEditingController>((ref) {
+  return TextEditingController();
+});
+
+final searchTextProvider = Provider<String>((ref) {
+  return ref.watch(searchControllerProvider).text;
+});
+
+final filteredBloodBanksProvider =
+    StateProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  final bloodBanks = ref.watch(bloodBankProvider);
+  final searchText = ref.watch(searchControllerProvider).text;
+
+  // print('bloodBanks');
+
+  return bloodBanks.when(
+    data: (data) {
+      return data.where((bloodBank) {
+        return bloodBank['name']
+                .toString()
+                .toLowerCase()
+                .contains(searchText.toLowerCase()) ||
+            (bloodBank['bloodTypes'] as List)
+                .any((type) => type.toLowerCase() == searchText.toLowerCase());
+      }).toList();
+    },
+    loading: () => [], // Return an empty list while loading
+    error: (error, stackTrace) => [], // Return an empty list on error
+  );
+});
+
+class BloodBankFinder extends ConsumerWidget {
   const BloodBankFinder({Key? key}) : super(key: key);
 
   @override
-  _BloodBankFinderState createState() => _BloodBankFinderState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchController = ref.watch(searchControllerProvider);
+    final filteredBloodBanks = ref.watch(filteredBloodBanksProvider);
 
-class _BloodBankFinderState extends State<BloodBankFinder> {
-  late TextEditingController searchController;
-  late List<Map<String, dynamic>> bloodBanks;
-  bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    searchController = TextEditingController();
-    bloodBanks = [];
-    fetchBloodBanks(); // Fetch blood banks on initial load
-  }
-
-  Future<void> fetchBloodBanks() async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-
-      final QuerySnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore.instance.collection('bloodBanks').get();
-
-      List<Map<String, dynamic>> bloodBankList = [];
-
-      for (final QueryDocumentSnapshot<Map<String, dynamic>> document
-          in snapshot.docs) {
-        final Map<String, dynamic> data = document.data();
-
-        bloodBankList.add({
-          'name': data['name'],
-          'contactNumber': data['contactNumber'],
-          'address': data['address'],
-        });
-      }
-
-      setState(() {
-        bloodBanks = bloodBankList;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      // Handle error, e.g., show an error dialog
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred while fetching data. $e'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  Future<void> searchBloodBanks(String searchText) async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-
-      final QuerySnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore.instance.collection('bloodBanks').get();
-
-      List<Map<String, dynamic>> results = [];
-
-      for (final QueryDocumentSnapshot<Map<String, dynamic>> document
-          in snapshot.docs) {
-        final Map<String, dynamic> data = document.data();
-
-        if (data['name']
-            .toString()
-            .toLowerCase()
-            .contains(searchText.toLowerCase())) {
-          results.add({
-            'name': data['name'],
-            'contactNumber': data['contactNumber'],
-            'address': data['address'],
-          });
-        }
-      }
-
-      setState(() {
-        bloodBanks = results;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      // Handle error, e.g., show an error dialog
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred while fetching data. $e'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: PreferredSize(
@@ -170,7 +79,7 @@ class _BloodBankFinderState extends State<BloodBankFinder> {
                       child: TextField(
                         controller: searchController,
                         onChanged: (value) {
-                          searchBloodBanks(value);
+                          ref.refresh(filteredBloodBanksProvider);
                         },
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
@@ -212,28 +121,25 @@ class _BloodBankFinderState extends State<BloodBankFinder> {
                 ],
               ),
               Expanded(
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        itemCount: bloodBanks.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return const SizedBox(
-                              height: 10,
-                            );
-                          }
-                          final Map<String, dynamic> bloodBank =
-                              bloodBanks[index - 1];
-                          return CustomCard(
-                            elevation: 0,
-                            title: bloodBank['name'],
-                            height: 140,
-                            description:
-                                'Contact Info: ${bloodBank['contactNumber']}\nAddress: ${bloodBank['address']}',
-                          );
-                        },
-                      ),
-              ),
+                  child: ListView.builder(
+                itemCount: filteredBloodBanks.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return const SizedBox(
+                      height: 10,
+                    );
+                  }
+                  final Map<String, dynamic> bloodBank =
+                      filteredBloodBanks[index - 1];
+                  return CustomCard(
+                    elevation: 0,
+                    title: bloodBank['name'],
+                    height: 150,
+                    description:
+                        'Contact Info: ${bloodBank['contactNumber']}\nAddress: ${bloodBank['address']}\nBlood Types: ${bloodBank['bloodTypes'].join(', ')}',
+                  );
+                },
+              ))
             ],
           ),
         ),

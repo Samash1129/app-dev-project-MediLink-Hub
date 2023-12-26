@@ -1,7 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final authProvider = Provider<FirebaseAuth>((ref) {
+  return FirebaseAuth.instance;
+});
+
+final authStateChangesProvider = StreamProvider<User?>((ref) {
+  return ref.watch(authProvider).authStateChanges();
+});
+
+final authService = Provider<AuthService>((ref) {
+  return AuthService(ref); 
+});
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ProviderRef ref; 
+
+  AuthService(this.ref);
 
   Future<String?> signup({
     required String username,
@@ -9,21 +24,17 @@ class AuthService {
     required String password,
   }) async {
     try {
-      // Create the user in Firebase Authentication
-      await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      await ref.read(authProvider).createUserWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
 
-      // Get the current user
-      User? user = _auth.currentUser;
+      User? user = ref.read(authProvider).currentUser;
+      await user?.updateDisplayName(username);
 
-      // Update the user profile with the provided username
-      await user?.updateProfile(displayName: username);
-
-      return null; // Success, no error message
+      return null;
     } on FirebaseAuthException catch (e) {
-      return e.message; // Return the error message
+      return e.message;
     }
   }
 
@@ -32,15 +43,13 @@ class AuthService {
     required String password,
   }) async {
     try {
-      await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      return null; // Success, no error message
+      await ref.read(authProvider).signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+      return null;
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        return 'Email or password may be incorrect.';
-      } else if (e.code == 'wrong-password') {
+      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
         return 'Email or password may be incorrect.';
       } else {
         return e.message;
@@ -51,6 +60,6 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    await _auth.signOut();
+    await ref.read(authProvider).signOut();
   }
 }

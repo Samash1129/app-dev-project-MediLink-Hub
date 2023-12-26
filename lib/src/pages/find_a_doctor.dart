@@ -1,144 +1,49 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:app_dev_project_medilink_app/functions/doctor_finder_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/Appbar.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/Cards.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/CustomButton.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DoctorFinder extends StatefulWidget {
+final searchControllerProvider = Provider<TextEditingController>((ref) {
+  return TextEditingController();
+});
+
+final searchTextProvider = Provider<String>((ref) {
+  return ref.watch(searchControllerProvider).text;
+});
+
+final filteredDoctorsProvider =
+    StateProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  final doctors = ref.watch(doctorFinderProvider);
+  final searchText = ref.watch(searchControllerProvider).text;
+
+  // print('bloodBanks');
+
+  return doctors.when(
+    data: (data) {
+      return data.where((bloodBank) {
+        return bloodBank['name']
+            .toString()
+            .toLowerCase()
+            .contains(searchText.toLowerCase());
+      }).toList();
+    },
+    loading: () => [], // Return an empty list while loading
+    error: (error, stackTrace) => [], // Return an empty list on error
+  );
+});
+
+class DoctorFinder extends ConsumerWidget {
   const DoctorFinder({Key? key}) : super(key: key);
 
   @override
-  _DoctorFinderState createState() => _DoctorFinderState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchController = ref.watch(searchControllerProvider);
+    final filteredDoctors = ref.watch(filteredDoctorsProvider);
 
-class _DoctorFinderState extends State<DoctorFinder> {
-  late TextEditingController searchController;
-  late List<Map<String, dynamic>> doctors;
-  bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    searchController = TextEditingController();
-    doctors = [];
-    fetchDoctors(); // Fetch doctors on initial load
-  }
-
-  Future<void> fetchDoctors() async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-
-      final QuerySnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore.instance.collection('doctors').get();
-
-      List<Map<String, dynamic>> doctorList = [];
-
-      for (final QueryDocumentSnapshot<Map<String, dynamic>> document
-          in snapshot.docs) {
-        final Map<String, dynamic> data = document.data();
-
-        doctorList.add({
-          'name': data['name'],
-          'contactNumber': data['contactNumber'],
-          'expertise': data['expertise'],
-        });
-      }
-
-      setState(() {
-        doctors = doctorList;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      // Handle error, e.g., show an error dialog
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred while fetching data. $e'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  Future<void> searchDoctors(String searchText) async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-
-      final QuerySnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore.instance.collection('doctors').get();
-
-      List<Map<String, dynamic>> results = [];
-
-      for (final QueryDocumentSnapshot<Map<String, dynamic>> document
-          in snapshot.docs) {
-        final Map<String, dynamic> data = document.data();
-
-        if (data['name']
-                .toString()
-                .toLowerCase()
-                .contains(searchText.toLowerCase()) ||
-            data['expertise']
-                .toString()
-                .toLowerCase()
-                .contains(searchText.toLowerCase())) {
-          results.add({
-            'name': data['name'],
-            'contactNumber': data['contactNumber'],
-            'expertise': data['expertise'],
-          });
-        }
-      }
-
-      setState(() {
-        doctors = results;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      // Handle error, e.g., show an error dialog
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred while fetching data. $e'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: PreferredSize(
@@ -174,7 +79,7 @@ class _DoctorFinderState extends State<DoctorFinder> {
                       child: TextField(
                         controller: searchController,
                         onChanged: (value) {
-                          searchDoctors(value);
+                          ref.refresh(filteredDoctorsProvider);
                         },
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
@@ -216,28 +121,25 @@ class _DoctorFinderState extends State<DoctorFinder> {
                 ],
               ),
               Expanded(
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        itemCount: doctors.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return const SizedBox(
-                              height: 10,
-                            );
-                          }
-                          final Map<String, dynamic> doctor =
-                              doctors[index - 1];
-                          return CustomCard(
-                            elevation: 0,
-                            title: 'Dr. ' + doctor['name'],
-                            height: 140,
-                            description:
-                                'Contact Info: ${doctor['contactNumber']}\nExpertise: ${doctor['expertise']}',
-                          );
-                        },
-                      ),
-              ),
+                  child: ListView.builder(
+                itemCount: filteredDoctors.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return const SizedBox(
+                      height: 10,
+                    );
+                  }
+                  final Map<String, dynamic> doctor =
+                      filteredDoctors[index - 1];
+                  return CustomCard(
+                    elevation: 0,
+                    title: doctor['name'],
+                    height: 150,
+                    description:
+                        'Contact Info: ${doctor['contactNumber']}\nExpertise: ${doctor['expertise']}\n',
+                  );
+                },
+              ))
             ],
           ),
         ),

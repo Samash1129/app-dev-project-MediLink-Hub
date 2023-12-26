@@ -1,140 +1,48 @@
+import 'package:app_dev_project_medilink_app/functions/hospital_finder_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/Appbar.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/Cards.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/CustomButton.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HospitalFinder extends StatefulWidget {
+final searchControllerProvider = Provider<TextEditingController>((ref) {
+  return TextEditingController();
+});
+
+final searchTextProvider = Provider<String>((ref) {
+  return ref.watch(searchControllerProvider).text;
+});
+
+final filteredHospitalsProvider =
+    StateProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  final hospital = ref.watch(hospitalFinderProvider);
+  final searchText = ref.watch(searchControllerProvider).text;
+
+  // print('bloodBanks');
+
+  return hospital.when(
+    data: (data) {
+      return data.where((bloodBank) {
+        return bloodBank['name']
+            .toString()
+            .toLowerCase()
+            .contains(searchText.toLowerCase());
+      }).toList();
+    },
+    loading: () => [], // Return an empty list while loading
+    error: (error, stackTrace) => [], // Return an empty list on error
+  );
+});
+
+class HospitalFinder extends ConsumerWidget {
   const HospitalFinder({Key? key}) : super(key: key);
 
   @override
-  _HospitalFinderState createState() => _HospitalFinderState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final SearchController = ref.watch(searchControllerProvider);
+    final filteredHospitals = ref.watch(filteredHospitalsProvider);
 
-class _HospitalFinderState extends State<HospitalFinder> {
-  late TextEditingController searchController;
-  late List<Map<String, dynamic>> hospitals;
-  bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    searchController = TextEditingController();
-    hospitals = [];
-    fetchHospitals(); // Fetch hospitals on initial load
-  }
-
-  Future<void> fetchHospitals() async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-
-      final QuerySnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore.instance.collection('hospitals').get();
-
-      List<Map<String, dynamic>> hospitalList = [];
-
-      for (final QueryDocumentSnapshot<Map<String, dynamic>> document
-          in snapshot.docs) {
-        final Map<String, dynamic> data = document.data();
-
-        hospitalList.add({
-          'name': data['name'],
-          'contactNumber': data['contactNumber'],
-          'address': data['address'],
-        });
-      }
-
-      setState(() {
-        hospitals = hospitalList;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      // Handle error, e.g., show an error dialog
-      // ignore: use_build_context_synchronously
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred while fetching data. $e'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  Future<void> searchHospitals(String searchText) async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-
-      final QuerySnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore.instance.collection('hospitals').get();
-
-      List<Map<String, dynamic>> results = [];
-
-      for (final QueryDocumentSnapshot<Map<String, dynamic>> document
-          in snapshot.docs) {
-        final Map<String, dynamic> data = document.data();
-
-        if (data['name']
-            .toString()
-            .toLowerCase()
-            .contains(searchText.toLowerCase())) {
-          results.add({
-            'name': data['name'],
-            'contactNumber': data['contactNumber'],
-            'address': data['address'],
-          });
-        }
-      }
-
-      setState(() {
-        hospitals = results;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      // Handle error, e.g., show an error dialog
-      // ignore: use_build_context_synchronously
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred while fetching data. $e'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: PreferredSize(
@@ -168,9 +76,9 @@ class _HospitalFinderState extends State<HospitalFinder> {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(17, 8, 8, 8),
                       child: TextField(
-                        controller: searchController,
+                        controller: SearchController,
                         onChanged: (value) {
-                          searchHospitals(value);
+                          ref.refresh(filteredHospitalsProvider);
                         },
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
@@ -212,28 +120,25 @@ class _HospitalFinderState extends State<HospitalFinder> {
                 ],
               ),
               Expanded(
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        itemCount: hospitals.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return const SizedBox(
-                              height: 10,
-                            );
-                          }
-                          final Map<String, dynamic> hospital =
-                              hospitals[index - 1];
-                          return CustomCard(
-                            elevation: 0,
-                            title: hospital['name'],
-                            height: 140,
-                            description:
-                                'Contact Info: ${hospital['contactNumber']}\nAddress: ${hospital['address']}',
-                          );
-                        },
-                      ),
-              ),
+                  child: ListView.builder(
+                itemCount: filteredHospitals.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return const SizedBox(
+                      height: 10,
+                    );
+                  }
+                  final Map<String, dynamic> doctor =
+                      filteredHospitals[index - 1];
+                  return CustomCard(
+                    elevation: 0,
+                    title: doctor['name'],
+                    height: 150,
+                    description:
+                        'Contact Info: ${doctor['contactNumber']}\nExpertise: ${doctor['expertise']}\n',
+                  );
+                },
+              )),
             ],
           ),
         ),
