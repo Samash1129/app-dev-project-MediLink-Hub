@@ -1,5 +1,4 @@
 import 'package:app_dev_project_medilink_app/functions/hospital_finder_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/Appbar.dart';
 import 'package:app_dev_project_medilink_app/src/widgets/Cards.dart';
@@ -135,7 +134,7 @@ class HospitalFinder extends ConsumerWidget {
                     title: doctor['name'],
                     height: 150,
                     description:
-                        'Contact Info: ${doctor['contactNumber']}\nExpertise: ${doctor['expertise']}\n',
+                        'Contact Info: ${doctor['contactNumber']}\nAddress: ${doctor['address']}',
                   );
                 },
               )),

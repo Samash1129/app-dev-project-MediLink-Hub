@@ -91,7 +91,7 @@ class LoginPage extends ConsumerWidget {
                       TextFormField(
                         controller: emailController,
                         decoration: const InputDecoration(
-                          labelText: 'Username or Email',
+                          labelText: 'Email',
                           prefixIcon: Padding(
                             padding: EdgeInsets.fromLTRB(0, 8, 20, 8),
                             child: Icon(
@@ -103,7 +103,7 @@ class LoginPage extends ConsumerWidget {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter a username or email';
+                            return 'Please enter an email';
                           }
                           return null;
                         },
